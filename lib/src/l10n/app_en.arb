@@ -1,0 +1,15 @@
+{
+    "retry": "Retry",
+    "noInternet": "There is no internet connection.",
+    "exception": "Some thing went wrong!",
+    "workspaces": "Workspaces",
+    "projects": "Projects",
+    "tasks": "Tasks",
+    "no_found_workspace": "No Found Workspace",
+    "no_found_project": "No Found Project",
+    "no_found_task": "No Found Task",
+    "first_enter_api_key": "First Enter Your Api key",
+    "first_select_workspace": "First Select Workspace",
+    "first_select_project": "First Select Project"
+
+}

@@ -1,0 +1,14 @@
+{
+  "retry": "تلاش دوباره",
+  "noInternet": "اتصال به اینترنت وجود ندارد.",
+  "exception": "مشکلی پیش آمده!",
+  "workspaces": "فضاهای کاری",
+  "projects": "پروژه ها",
+  "tasks": "وظایف",
+  "no_found_workspace": "فضای کاری وجود ندارد",
+  "no_found_project": "پروژه ای وجود ندارد",
+  "no_found_task": "وظیفه ای وجود ندارد",
+  "first_enter_api_key": "ابتدا Api key خود را وارد کنید",
+  "first_select_workspace": "ابتدا فضای کاری را انتخاب کنید",
+  "first_select_project": "ابتدا پروژه را انتخاب کنید"
+}

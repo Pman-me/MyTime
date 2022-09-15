@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+<color name="primary_textColor">#ff0D253C</color>
+
+<color name="secondaryText-color">#ff2D4379</color>
+
+<color name="captionTextColor">#ff7888B2</color>
+
+<color name="primaryColor">#FF1e41d4</color>
+
+<color name="white">#FFFFFFFF</color>
+
+<color name="black">#FF000000</color>
+
+<color name="grey">#FF757575</color>
+
+</resources>
