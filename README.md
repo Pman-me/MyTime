@@ -21,6 +21,6 @@ Technologies & Tools that are used in this projects are:
 
 <table border>
     <tr>
-        <td><img src="./screenshot/my_time.gif" alt="" width="600"></td>
+        <td><img src="./preview/my_time.gif" alt="" width="600"></td>
     <tr>
 </table>
