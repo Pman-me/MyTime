@@ -1,9 +1,18 @@
 class ApiKeyContainer {
-  static late final String _kApiKey;
+  static ApiKeyContainer? instance;
 
-  static String get getApiKey => _kApiKey;
+  ApiKeyContainer._internal();
 
-  static set setApiKey(String value) {
-    _kApiKey = value;
+  factory ApiKeyContainer() {
+    instance ??= ApiKeyContainer._internal();
+    return instance!;
+  }
+
+  late String _kApiKey;
+
+  String get getApiKey => _kApiKey;
+
+  set setApiKey(String? value) {
+    _kApiKey = value!;
   }
 }

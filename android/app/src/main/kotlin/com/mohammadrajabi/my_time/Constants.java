@@ -11,6 +11,7 @@ public class Constants {
     public static final String METHOD_CHANNEL_ACTION_PAUSE = "pause";
     public static final String METHOD_CHANNEL_ACTION_RESET = "reset";
     public static final String TICK = "tick";
+    public static final String METHOD_CHANNEL_WAS_TIMER_RUNNING = "wasTimerRunning";
 
     public static final String TIMER_METHOD_CHANNEL = "timerMethodChannel";
 

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:my_time/src/presentation/view/config_view/config_screen.dart';
+import 'package:my_time/src/presentation/view/api_key_view/api_key_screen.dart';
 
 import '../constants/route_constant.dart';
 import '../presentation/view/main_view/main_screen.dart';
@@ -14,10 +14,10 @@ class AppRoutes {
         route = MaterialPageRoute(builder: (_) => const SplashScreen());
         break;
       case kMainScreenRoute:
-        route = MaterialPageRoute(builder: (_) => const MainScreen());
+        route = MaterialPageRoute(builder: (_) => MainScreen());
         break;
-      case kConfigScreenRoute:
-        route = MaterialPageRoute(builder: (_) => ConfigScreen());
+      case kApiKeyScreenRoute:
+        route = MaterialPageRoute(builder: (_) => ApiKeyScreen());
         break;
     }
     return route;

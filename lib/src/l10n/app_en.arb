@@ -10,6 +10,12 @@
     "no_found_task": "No Found Task",
     "first_enter_api_key": "First Enter Your Api key",
     "first_select_workspace": "First Select Workspace",
-    "first_select_project": "First Select Project"
+    "first_select_project": "First Select Project",
+    "api_key": "Your Api Key",
+    "enter_api_key": "Enter Api Key",
+    "save": "Save",
+    "add": "Add",
+    "description": "Description",
+    "ok": "Ok"
 
 }

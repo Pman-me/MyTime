@@ -22,7 +22,7 @@ class ColorName {
   /// Color: #FF757575
   static const Color grey = Color(0xFF757575);
 
-  /// Color: #FF1e41d4
+  /// Color: #FF1E41D4
   static const Color primaryColor = Color(0xFF1E41D4);
 
   /// Color: #ff0D253C

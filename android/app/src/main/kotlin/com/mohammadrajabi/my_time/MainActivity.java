@@ -38,6 +38,10 @@ public class MainActivity extends FlutterActivity {
         super.onStart();
         intent = new Intent(MainActivity.this, StopWatchService.class);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+        stopPreviousService();
+    }
+
+    private void stopPreviousService() {
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo serviceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceInfo.service.getClassName().equals(StopWatchService.class.getName())) {
@@ -48,9 +52,15 @@ public class MainActivity extends FlutterActivity {
 
     @Override
     protected void onStop() {
-        intent.putExtra(Constants.IS_RUNNING_EXTRA_KEY, stopWatchService.isRunning);
+        boolean wasTimerStarted = stopWatchService.getElapsedTime() > 0;
+        intent.putExtra(Constants.IS_RUNNING_EXTRA_KEY, stopWatchService.isRunning());
+
         unbindService(serviceConnection);
-        startService(intent);
+
+        if (wasTimerStarted) {
+            startService(intent);
+
+        }
         super.onStop();
 
     }
@@ -62,6 +72,7 @@ public class MainActivity extends FlutterActivity {
         BinaryMessenger binaryMessenger = flutterEngine.getDartExecutor().getBinaryMessenger();
         timerMethodChannel = new MethodChannel(binaryMessenger, Constants.TIMER_METHOD_CHANNEL);
         timerMethodChannel.setMethodCallHandler((call, result) -> {
+            Object resultMethodCall = null;
 
             switch (call.method) {
                 case Constants.METHOD_CHANNEL_ACTION_PLAY:
@@ -69,13 +80,14 @@ public class MainActivity extends FlutterActivity {
                     if (isBound) {
                         stopWatchService.playTimer();
                     }
-
+                    resultMethodCall = true;
                     break;
                 case Constants.METHOD_CHANNEL_ACTION_PAUSE:
 
                     if (isBound) {
                         stopWatchService.pauseTimer();
                     }
+                    resultMethodCall = true;
 
                     break;
                 case Constants.METHOD_CHANNEL_ACTION_RESET:
@@ -83,11 +95,20 @@ public class MainActivity extends FlutterActivity {
                     if (isBound) {
                         stopWatchService.resetTimer();
                     }
+                    resultMethodCall = true;
+
+                    break;
+                case Constants.METHOD_CHANNEL_WAS_TIMER_RUNNING:
+                    int elapsedTime = stopWatchService.getElapsedTime();
+
+                    if (!stopWatchService.isRunning() && elapsedTime > 0) {
+                        resultMethodCall = elapsedTime;
+                    }
 
                     break;
             }
 
-            result.success(true);
+            result.success(resultMethodCall);
         });
 
     }
@@ -110,7 +131,9 @@ public class MainActivity extends FlutterActivity {
     final Observer<Integer> observer = new Observer<Integer>() {
         @Override
         public void onChanged(Integer elapsedTime) {
-            timerMethodChannel.invokeMethod(Constants.TICK, elapsedTime);
+            if (elapsedTime > 0) {
+                timerMethodChannel.invokeMethod(Constants.TICK, elapsedTime);
+            }
         }
     };
 

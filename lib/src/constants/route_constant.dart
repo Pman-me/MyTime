@@ -1,3 +1,3 @@
-const String kMainScreenRoute = '/';
-const String kSplashScreenRoute = '/splashScreen';
-const String kConfigScreenRoute = '/configScreen';
+const String kSplashScreenRoute = '/';
+const String kMainScreenRoute = '/mainScreen';
+const String kApiKeyScreenRoute = '/apiKeyScreen';

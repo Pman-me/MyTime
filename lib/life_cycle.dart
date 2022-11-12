@@ -23,7 +23,7 @@ class _LifeCycleState extends State<LifeCycle> with WidgetsBindingObserver {
 
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.detached) {
 
     }
     super.didChangeAppLifecycleState(state);

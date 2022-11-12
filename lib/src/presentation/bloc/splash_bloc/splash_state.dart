@@ -1,9 +1,17 @@
-import 'package:equatable/equatable.dart';
+part of 'splash_bloc.dart';
 
-class SplashState extends Equatable{
+@immutable
+class SplashState extends Equatable {
+  bool networkConnectivity;
+
+  SplashState({this.networkConnectivity = true});
 
   @override
-  List<Object> get props =>[];
+  List<Object?> get props => [networkConnectivity];
 }
 
-class SplashNavigated extends SplashState{}
+class SplashNavigatedTo extends SplashState {
+  String route;
+
+  SplashNavigatedTo({required this.route});
+}

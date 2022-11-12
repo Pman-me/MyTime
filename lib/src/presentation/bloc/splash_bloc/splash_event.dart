@@ -1,8 +1,8 @@
-import 'package:equatable/equatable.dart';
+part of 'splash_bloc.dart';
 
-abstract class SplashEvent extends Equatable {
-  @override
-  List<Object> get props => [];
-}
+@immutable
+abstract class SplashEvent  {}
 
-class SplashStarted extends SplashEvent {}
+class SplashStartedEvent extends SplashEvent {}
+
+class SplashRetryEvent extends SplashEvent{}

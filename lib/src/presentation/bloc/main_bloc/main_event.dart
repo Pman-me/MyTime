@@ -1,23 +1,17 @@
 part of 'main_bloc.dart';
 
 @immutable
-abstract class MainEvent extends Equatable {
-  @override
-  List<Object> get props => [];
-}
+abstract class MainEvent {}
 
 class MainStartedEvent extends MainEvent {}
 
 @immutable
 class MainTimerTickedEvent extends MainEvent {
-  int elapseInSeconds;
+  int elapsedInSeconds;
   double? sleekCircularSliderElapseValue;
 
   MainTimerTickedEvent(
-      {required this.elapseInSeconds, this.sleekCircularSliderElapseValue}) {
-    super.props.addAll([elapseInSeconds, sleekCircularSliderElapseValue ?? 0]);
-  }
-
+      {required this.elapsedInSeconds, this.sleekCircularSliderElapseValue});
 }
 
 class MainTimerStartedEvent extends MainEvent {}
@@ -27,3 +21,29 @@ class MainTimerResumedEvent extends MainEvent {}
 class MainTimerPausedEvent extends MainEvent {}
 
 class MainTimerResetEvent extends MainEvent {}
+
+class MainCanBeSavedTimeEntryEvent extends MainEvent {
+  bool canBeSaved;
+
+  MainCanBeSavedTimeEntryEvent({required this.canBeSaved});
+}
+
+class MainSaveTimeEntryEvent extends MainEvent {
+  int elapsedInSeconds;
+
+  MainSaveTimeEntryEvent({required this.elapsedInSeconds});
+}
+
+class MainAddTimeEntryEvent extends MainEvent {}
+
+class MainOpenBottomSheetEvent extends MainEvent {}
+
+class MainCloseBottomSheetEvent extends MainEvent {}
+
+class MainWorkspaceHasChangedEvent extends MainEvent {
+  String selectedWorkspace;
+
+  MainWorkspaceHasChangedEvent({required this.selectedWorkspace});
+}
+
+class MainPostTimeEntryList extends MainEvent {}

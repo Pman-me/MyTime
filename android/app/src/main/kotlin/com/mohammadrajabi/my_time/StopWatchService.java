@@ -12,19 +12,26 @@ import android.os.IBinder;
 import android.os.Looper;
 
 import androidx.annotation.Nullable;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 
 
 public class StopWatchService extends Service {
 
     private IBinder stopWatchBinder = new StopWatchBinder();
-    ;
+
     private int elapsedTime = 0;
     private boolean isForegroundService = false;
     private Handler handler;
-    public boolean isRunning = false;
+    private boolean isRunning = false;
     private Observer<Integer> observer;
+
+    public int getElapsedTime() {
+        return elapsedTime;
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
 
     @Override
     public void onCreate() {
@@ -42,7 +49,7 @@ public class StopWatchService extends Service {
 
         if (isRunning) {
             notification = NotificationService.getInstance().getNotification(this,
-                    timeFormatting(elapsedTime),
+                    toHoursMinutesSeconds(elapsedTime),
                     R.drawable.time,
                     Constants.NOTIFICATION_ACTION_PAUSE,
                     R.drawable.ic_stop,
@@ -50,7 +57,7 @@ public class StopWatchService extends Service {
             playTimer();
         } else {
             notification = NotificationService.getInstance().getNotification(this,
-                    timeFormatting(elapsedTime),
+                    toHoursMinutesSeconds(elapsedTime),
                     R.drawable.time,
                     Constants.NOTIFICATION_ACTION_PLAY,
                     R.drawable.ic_stop,
@@ -64,7 +71,7 @@ public class StopWatchService extends Service {
             if (intent.getAction().equals(Constants.NOTIFICATION_ACTION_PAUSE)) {
 
                 NotificationService.getInstance().updateNotification(this,
-                        timeFormatting(elapsedTime),
+                        toHoursMinutesSeconds(elapsedTime),
                         R.drawable.time,
                         Constants.NOTIFICATION_ACTION_PLAY,
                         R.drawable.ic_play,
@@ -73,7 +80,7 @@ public class StopWatchService extends Service {
 
             } else if (intent.getAction().equals(Constants.NOTIFICATION_ACTION_PLAY)) {
                 NotificationService.getInstance().updateNotification(this,
-                        timeFormatting(elapsedTime),
+                        toHoursMinutesSeconds(elapsedTime),
                         R.drawable.time,
                         Constants.NOTIFICATION_ACTION_PAUSE,
                         R.drawable.ic_stop,
@@ -97,6 +104,22 @@ public class StopWatchService extends Service {
         return stopWatchBinder;
     }
 
+    @Override
+    public void onDestroy() {
+        if (handler != null) {
+            handler.removeCallbacks(stopWatchTimer);
+        }
+        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().removeObserver(observer);
+        super.onDestroy();
+    }
+
+
+    public class StopWatchBinder extends Binder {
+
+        public StopWatchService stopWatchService() {
+            return StopWatchService.this;
+        }
+    }
 
     private void stopForegroundService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -106,20 +129,6 @@ public class StopWatchService extends Service {
         }
         NotificationManager notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
         notificationManager.cancel(Constants.NOTIFICATION_ID);
-    }
-
-    public class StopWatchBinder extends Binder {
-
-        public StopWatchService stopWatchService() {
-            return StopWatchService.this;
-        }
-    }
-
-    @Override
-    public void onDestroy() {
-        handler.removeCallbacks(stopWatchTimer);
-        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().removeObserver(observer);
-        super.onDestroy();
     }
 
     private Runnable stopWatchTimer = new Runnable() {
@@ -132,7 +141,7 @@ public class StopWatchService extends Service {
 
             if (isForegroundService) {
                 NotificationService.getInstance().updateNotification(getBaseContext(),
-                        timeFormatting(elapsedTime),
+                        toHoursMinutesSeconds(elapsedTime),
                         R.drawable.time,
                         Constants.NOTIFICATION_ACTION_PAUSE,
                         R.drawable.ic_stop,
@@ -151,16 +160,18 @@ public class StopWatchService extends Service {
     }
 
     public void pauseTimer() {
-        handler.removeCallbacks(stopWatchTimer);
         isRunning = false;
+        if (handler != null)
+            handler.removeCallbacks(stopWatchTimer);
     }
 
     public void resetTimer() {
         elapsedTime = 0;
         pauseTimer();
+        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
     }
 
-    private String timeFormatting(int elapsedTime) {
+    private String toHoursMinutesSeconds(int elapsedTime) {
         int hour = (elapsedTime % 86400) / 3600;
         int minute = (elapsedTime % 86400 % 3600) / 60;
         int second = elapsedTime % 86400 % 3600 % 60;

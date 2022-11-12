@@ -20,20 +20,20 @@ class CustomTextFormField extends StatelessWidget{
       autovalidateMode: AutovalidateMode.onUserInteraction,
       validator: validator,
       controller: controller,
-      style: TextStyle(color: Colors.grey, fontSize: 16),
+      style: const TextStyle(color: Colors.grey, fontSize: 16),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
-        contentPadding: EdgeInsets.all(8),
+        contentPadding: const EdgeInsets.all(8),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey, width: 1)),
+            borderSide: const BorderSide(color: Colors.grey, width: 1)),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey, width: 1)),
+            borderSide: const BorderSide(color: Colors.grey, width: 1)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey, width: 1)),
+            borderSide: const BorderSide(color: Colors.grey, width: 1)),
       ),
     );
   }

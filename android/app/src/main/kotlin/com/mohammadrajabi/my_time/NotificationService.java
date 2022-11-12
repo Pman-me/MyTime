@@ -25,8 +25,14 @@ public class NotificationService {
     }
 
     public Notification getNotification(Context context, String title, int iconId, String actionTitle, int actionIconId, String action) {
-        Intent playOrPauseIntent = new Intent(context,StopWatchService.class);
+        Intent playOrPauseIntent = new Intent(context, StopWatchService.class);
         playOrPauseIntent.setAction(action);
+
+        Intent startAppIntent = new Intent(context, MainActivity.class);
+        startAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+
+        PendingIntent startAppPendingIntent = PendingIntent.getActivity(context,0,startAppIntent,PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
 
         PendingIntent pendingPlayOrPauseIntent = PendingIntent.getService(context, 0, playOrPauseIntent, 0);
 
@@ -34,6 +40,8 @@ public class NotificationService {
                 .setContentTitle(title)
                 .setSmallIcon(iconId)
                 .setShowWhen(false)
+                .setSilent(true)
+                .setContentIntent(startAppPendingIntent)
                 .addAction(actionIconId, actionTitle, pendingPlayOrPauseIntent);
 
         return notificationBuilder.build();
