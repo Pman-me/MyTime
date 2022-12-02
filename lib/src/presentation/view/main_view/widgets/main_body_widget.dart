@@ -51,7 +51,7 @@ class MainBodyWidget extends StatelessWidget {
                         const SizedBox(
                           height: 16,
                         ),
-                        const TimeListWidget(itemExtend: 100),
+                        const TimeListWidget(itemExtend: 72),
                       ],
                     ),
                   ),
@@ -84,7 +84,7 @@ class MainBodyWidget extends StatelessWidget {
               topLeft: Radius.circular(12), topRight: Radius.circular(12))),
       builder: (BuildContext context) {
         return AddDetailTimeEntryWidget(
-          localizations: localizations!,
+          localizations: localizations,
         );
       },
     ).whenComplete(() => context.read<MainBloc>().add(MainCloseBottomSheetEvent()));

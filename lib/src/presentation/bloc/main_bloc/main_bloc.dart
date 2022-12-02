@@ -43,7 +43,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     on<MainWorkspaceHasChangedEvent>(_onWorkspaceChanged);
     on<MainCanBeSavedTimeEntryEvent>(_onCanBeSavedTimeEntry);
     on<MainSaveTimeEntryEvent>(_onSaveTimeEntry);
-    on<MainAddTimeEntryEvent>(_onAddTimeEntry);
+    on<MainDeleteTimeEntryEvent>(_onDeleteTimeEntry);
     on<MainOpenBottomSheetEvent>(_onOpenBottomSheet);
     on<MainCloseBottomSheetEvent>(_closeBottomSheet);
     on<MainPostTimeEntryList>(_onPostTimeEntryList);
@@ -151,7 +151,7 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     emit(state.copyWith(canBeSaved: event.canBeSaved));
   }
 
-  FutureOr<void> _onSaveTimeEntry(MainSaveTimeEntryEvent event, Emitter<MainState> emit) {
+  Future<FutureOr<void>> _onSaveTimeEntry(MainSaveTimeEntryEvent event, Emitter<MainState> emit) async {
     DateFormat dateFormatter = DateFormat(kTimeEntryDateFormat);
     DateTime endDateTime = DateTime.now();
     DateTime startDateTime = DateTime.fromMillisecondsSinceEpoch(
@@ -167,18 +167,23 @@ class MainBloc extends Bloc<MainEvent, MainState> {
       endDateTime: '${dateFormatter.format(endDateTime)}Z',
     );
 
-    _mainRepo.saveTimeEntry(timeEntry: timeEntry);
-
-    final timeEntryList = state.timeEntryList!.reversed.toList();
-    timeEntryList.add(timeEntry);
-    final newTimeEntryList = List.of(timeEntryList.reversed);
+    await _mainRepo.saveTimeEntry(timeEntry: timeEntry);
+    final timeEntryList = _mainRepo.fetchTimeEntries().reversed.toList();
+    final newTimeEntryList = List.of(timeEntryList);
 
     emit(state.copyWith(timeEntryList: newTimeEntryList));
 
     add(MainTimerResetEvent());
   }
 
-  FutureOr<void> _onAddTimeEntry(MainAddTimeEntryEvent event, Emitter<MainState> emit) {}
+  FutureOr<void> _onDeleteTimeEntry(MainDeleteTimeEntryEvent event, Emitter<MainState> emit) {
+    var result = _mainRepo.deleteTimeEntry(timeEntryId: event.timeEntryId);
+    if(result){
+      final timeEntryList = _mainRepo.fetchTimeEntries().reversed.toList();
+      final newTimeEntryList = List.of(timeEntryList);
+      emit(state.copyWith(timeEntryList: newTimeEntryList));
+    }
+  }
 
   FutureOr<void> _onOpenBottomSheet(
       MainOpenBottomSheetEvent event, Emitter<MainState> emit) {
@@ -232,4 +237,6 @@ class MainBloc extends Bloc<MainEvent, MainState> {
     _mainRepo.closeStore();
     return super.close();
   }
+
+
 }

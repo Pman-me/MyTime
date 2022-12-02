@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:my_time/src/common_widgets/custom_snack_bar.dart';
-import 'package:my_time/src/data/local/app_db/objectbox.g.dart';
-import 'package:my_time/src/presentation/bloc/add_time_entry_bloc/add_detail_time_entry_bloc.dart';
+import 'package:my_time/src/presentation/bloc/add_delete_time_entry_bloc/add_detail_time_entry_bloc.dart';
 
 import '../../../common_widgets/custom_button.dart';
 import '../../../constants/general_constant.dart';

@@ -23,19 +23,23 @@ class FabWidget extends StatelessWidget {
           bottom: 16,
           child: Align(
             alignment: Alignment.bottomCenter,
-            child: FloatingActionButton.extended(
-              backgroundColor: lightTheme.colorScheme.primary,
-              onPressed: () {
-                canBeSaved!
-                    ? context.read<MainBloc>().add(MainSaveTimeEntryEvent(
-                        elapsedInSeconds:
-                            context.read<MainBloc>().state.elapsedInSeconds))
-                    : context.read<MainBloc>().add(MainOpenBottomSheetEvent());
-              },
-              icon: canBeSaved! ? const Icon(Icons.save_rounded) : const Icon(Icons.add),
-              label: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(canBeSaved ? localizations.save : localizations.add),
+            child: Visibility(
+              visible: canBeSaved!,
+              child: FloatingActionButton.extended(
+                backgroundColor: lightTheme.colorScheme.primary,
+                onPressed: () {
+                  var mainBloc = context.read<MainBloc>();
+                  canBeSaved
+                      ? mainBloc.add(MainSaveTimeEntryEvent(
+                          elapsedInSeconds:
+                              context.read<MainBloc>().state.elapsedInSeconds))
+                      : mainBloc.add(MainOpenBottomSheetEvent());
+                },
+                icon: canBeSaved ? const Icon(Icons.save_rounded) : const Icon(Icons.add),
+                label: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(canBeSaved ? localizations.save : localizations.add),
+                ),
               ),
             ),
           ),

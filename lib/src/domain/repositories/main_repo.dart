@@ -23,6 +23,8 @@ abstract class IMainRepo {
 
   Future<int> saveTimeEntry({required TimeEntryEntity timeEntry});
 
+  bool deleteTimeEntry({required int timeEntryId});
+
   Future<List<TimeEntryEntity>> postTimeEntries(
       {required String workspaceId, required List<TimeEntryEntity> timeEntryList});
 

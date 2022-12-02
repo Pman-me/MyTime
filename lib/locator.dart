@@ -4,9 +4,9 @@ import 'package:get_it/get_it.dart';
 import 'package:my_time/src/data/local/app_db/object_box_helper.dart';
 import 'package:my_time/src/data/repositories/api_key_repo.dart';
 import 'package:my_time/src/data/repositories/main_repo.dart';
-import 'package:my_time/src/presentation/bloc/add_time_entry_bloc/add_detail_time_entry_bloc.dart';
 import 'package:my_time/src/presentation/bloc/splash_bloc/splash_bloc.dart';
 import 'package:my_time/src/util/api_key_container.dart';
+import 'package:my_time/src/presentation/bloc/add_delete_time_entry_bloc/add_detail_time_entry_bloc.dart';
 
 import 'src/constants/general_constant.dart';
 import 'src/data/data_sources/remote_data_source_impl.dart';

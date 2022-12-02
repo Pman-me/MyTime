@@ -34,7 +34,12 @@ class MainSaveTimeEntryEvent extends MainEvent {
   MainSaveTimeEntryEvent({required this.elapsedInSeconds});
 }
 
-class MainAddTimeEntryEvent extends MainEvent {}
+class MainDeleteTimeEntryEvent extends MainEvent {
+  int timeEntryId;
+  int timeEntryIndex;
+
+  MainDeleteTimeEntryEvent({required this.timeEntryId, required this.timeEntryIndex});
+}
 
 class MainOpenBottomSheetEvent extends MainEvent {}
 

@@ -36,7 +36,7 @@ class ObjectBoxHelper {
   //TimeEntry box operations
   List<TimeEntryEntity> fetchTimeEntries() => _timeEntryBox!.getAll();
 
-  bool removeTimeEntry(int entityId) => _timeEntryBox!.remove(entityId);
+  bool deleteTimeEntry(int entityId) => _timeEntryBox!.remove(entityId);
 
   Future<int> putTimeEntry(TimeEntryEntity timeEntry) async =>
       _timeEntryBox!.putAsync(timeEntry);

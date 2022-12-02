@@ -157,6 +157,11 @@ class MainRepo implements IMainRepo {
   }
 
   @override
+  bool deleteTimeEntry({required int timeEntryId}) {
+      return _objectBoxHelper.deleteTimeEntry(timeEntryId);
+  }
+
+  @override
   Future<List<TimeEntryEntity>> postTimeEntries(
       {required String workspaceId, required List<TimeEntryEntity> timeEntryList}) async {
     try {
@@ -173,7 +178,7 @@ class MainRepo implements IMainRepo {
             .postTimeEntries(workspaceId, timeEntryModel.toJson())
             .then((response) {
           if (response.statusCode == 201) {
-            _objectBoxHelper.removeTimeEntry(timeEntryEntity.entityId!);
+            _objectBoxHelper.deleteTimeEntry(timeEntryEntity.entityId!);
           }
         });
       }
@@ -204,4 +209,5 @@ class MainRepo implements IMainRepo {
   closeStore() {
     _objectBoxHelper.closeStore();
   }
+
 }

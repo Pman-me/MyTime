@@ -15,5 +15,5 @@ const String kApiKeySecureStorageKey = 'apiKey';
 const double kAppbarHeight = 56;
 const double kButtonHeight = 56;
 
-const String kTimeEntryDateFormat='yyyy-MM-ddThh:mm:ss';
+const String kTimeEntryDateFormat='yyyy-MM-ddTHH:mm:ss';
 const String kTimeEntryDefaultDescription='From app, should set';
