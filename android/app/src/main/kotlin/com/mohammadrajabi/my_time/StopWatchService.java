@@ -9,7 +9,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
+
+import java.util.*;
 
 import androidx.annotation.Nullable;
 import androidx.lifecycle.Observer;
@@ -22,15 +23,16 @@ public class StopWatchService extends Service {
     private int elapsedTime = 0;
     private boolean isForegroundService = false;
     private Handler handler;
-    private boolean isRunning = false;
+    private boolean isStopWatchRunning = false;
     private Observer<Integer> observer;
+    private Timer stopwatchTimer;
 
     public int getElapsedTime() {
         return elapsedTime;
     }
 
-    public boolean isRunning() {
-        return isRunning;
+    public boolean isStopWatchRunning() {
+        return isStopWatchRunning;
     }
 
     @Override
@@ -44,11 +46,11 @@ public class StopWatchService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         isForegroundService = true;
-        isRunning = intent.getBooleanExtra(Constants.IS_RUNNING_EXTRA_KEY, false);
+        isStopWatchRunning = intent.getBooleanExtra(Constants.IS_RUNNING_EXTRA_KEY, false);
         Notification notification;
 
-        if (isRunning) {
-            notification = NotificationService.getInstance().getNotification(this,
+        if (isStopWatchRunning) {
+            notification = NotificationService.getInstance().buildNotification(this,
                     toHoursMinutesSeconds(elapsedTime),
                     R.drawable.time,
                     Constants.NOTIFICATION_ACTION_PAUSE,
@@ -56,7 +58,7 @@ public class StopWatchService extends Service {
                     Constants.NOTIFICATION_ACTION_PAUSE);
             playTimer();
         } else {
-            notification = NotificationService.getInstance().getNotification(this,
+            notification = NotificationService.getInstance().buildNotification(this,
                     toHoursMinutesSeconds(elapsedTime),
                     R.drawable.time,
                     Constants.NOTIFICATION_ACTION_PLAY,
@@ -68,28 +70,35 @@ public class StopWatchService extends Service {
 
         if (intent.getAction() != null) {
 
-            if (intent.getAction().equals(Constants.NOTIFICATION_ACTION_PAUSE)) {
+            switch (intent.getAction()) {
 
-                NotificationService.getInstance().updateNotification(this,
-                        toHoursMinutesSeconds(elapsedTime),
-                        R.drawable.time,
-                        Constants.NOTIFICATION_ACTION_PLAY,
-                        R.drawable.ic_play,
-                        Constants.NOTIFICATION_ACTION_PLAY);
-                pauseTimer();
-
-            } else if (intent.getAction().equals(Constants.NOTIFICATION_ACTION_PLAY)) {
-                NotificationService.getInstance().updateNotification(this,
-                        toHoursMinutesSeconds(elapsedTime),
-                        R.drawable.time,
-                        Constants.NOTIFICATION_ACTION_PAUSE,
-                        R.drawable.ic_stop,
-                        Constants.NOTIFICATION_ACTION_PAUSE);
-                playTimer();
+                case Constants.NOTIFICATION_ACTION_PAUSE:
+                    NotificationService.getInstance().updateNotification(this,
+                            toHoursMinutesSeconds(elapsedTime),
+                            R.drawable.time,
+                            Constants.NOTIFICATION_ACTION_PLAY,
+                            R.drawable.ic_play,
+                            Constants.NOTIFICATION_ACTION_PLAY);
+                    pauseTimer();
+                    break;
+                case Constants.NOTIFICATION_ACTION_PLAY:
+                    NotificationService.getInstance().updateNotification(this,
+                            toHoursMinutesSeconds(elapsedTime),
+                            R.drawable.time,
+                            Constants.NOTIFICATION_ACTION_PAUSE,
+                            R.drawable.ic_stop,
+                            Constants.NOTIFICATION_ACTION_PAUSE);
+                    playTimer();
+                    break;
+                case Constants.APP_WIDGET_ACTION_PLAY:
+                    playTimer();
+                    break;
+                case Constants.APP_WIDGET_ACTION_PAUSE:
+                    pauseTimer();
+                    break;
 
             }
         }
-
 
         return START_REDELIVER_INTENT;
     }
@@ -104,10 +113,23 @@ public class StopWatchService extends Service {
         return stopWatchBinder;
     }
 
+    void stopForegroundService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_DETACH);
+        } else {
+            stopForeground(true);
+        }
+        NotificationManager notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(Constants.NOTIFICATION_ID);
+    }
+
     @Override
     public void onDestroy() {
-        if (handler != null) {
-            handler.removeCallbacks(stopWatchTimer);
+//        if (handler != null) {
+//            handler.removeCallbacks(stopWatchTimer);
+//        }
+        if (stopwatchTimer != null) {
+            stopwatchTimer.cancel();
         }
         ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().removeObserver(observer);
         super.onDestroy();
@@ -121,48 +143,61 @@ public class StopWatchService extends Service {
         }
     }
 
-    private void stopForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_DETACH);
-        } else {
-            stopForeground(true);
-        }
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(Constants.NOTIFICATION_ID);
-    }
 
-    private Runnable stopWatchTimer = new Runnable() {
 
-        @Override
-        public void run() {
-            handler.postDelayed(this, 1000);
-
-            elapsedTime++;
-
-            if (isForegroundService) {
-                NotificationService.getInstance().updateNotification(getBaseContext(),
-                        toHoursMinutesSeconds(elapsedTime),
-                        R.drawable.time,
-                        Constants.NOTIFICATION_ACTION_PAUSE,
-                        R.drawable.ic_stop,
-                        Constants.NOTIFICATION_ACTION_PAUSE);
-            }
-
-            ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
-        }
-    };
+//    private Runnable stopWatchTimer = new Runnable() {
+//
+//        @Override
+//        public void run() {
+//            handler.postDelayed(this, 1000);
+//
+//            elapsedTime++;
+//
+//            if (isForegroundService) {
+//                NotificationService.getInstance().updateNotification(getBaseContext(),
+//                        toHoursMinutesSeconds(elapsedTime),
+//                        R.drawable.time,
+//                        Constants.NOTIFICATION_ACTION_PAUSE,
+//                        R.drawable.ic_stop,
+//                        Constants.NOTIFICATION_ACTION_PAUSE);
+//            }
+//
+//            ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
+//        }
+//    };
 
     public void playTimer() {
-        isRunning = true;
-        handler = null;
-        handler = new Handler(Looper.getMainLooper());
-        stopWatchTimer.run();
+            stopwatchTimer = new Timer();
+            stopwatchTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    elapsedTime++;
+
+                    if (isForegroundService) {
+                        NotificationService.getInstance().updateNotification(getBaseContext(),
+                                toHoursMinutesSeconds(elapsedTime),
+                                R.drawable.time,
+                                Constants.NOTIFICATION_ACTION_PAUSE,
+                                R.drawable.ic_stop,
+                                Constants.NOTIFICATION_ACTION_PAUSE);
+                    }
+                    ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
+
+                }
+            }, 0, 1000);
+
+        isStopWatchRunning = true;
+//        handler = new Handler(Looper.getMainLooper());
+//        stopWatchTimer.run();
     }
 
     public void pauseTimer() {
-        isRunning = false;
-        if (handler != null)
-            handler.removeCallbacks(stopWatchTimer);
+        stopwatchTimer.cancel();
+        isStopWatchRunning = false;
+//        if (handler != null) {
+//            handler.removeCallbacks(stopWatchTimer);
+//            handler = null;
+//        }
     }
 
     public void resetTimer() {

@@ -7,11 +7,9 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.widget.Chronometer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityManagerCompat;
 import androidx.lifecycle.Observer;
 
 import io.flutter.embedding.android.FlutterActivity;
@@ -36,8 +34,17 @@ public class MainActivity extends FlutterActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        createService();
+    }
+
+    private void createService() {
         intent = new Intent(MainActivity.this, StopWatchService.class);
         bindService(intent, serviceConnection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         stopPreviousService();
     }
 
@@ -51,17 +58,20 @@ public class MainActivity extends FlutterActivity {
     }
 
     @Override
-    protected void onStop() {
+    protected void onPause() {
         boolean wasTimerStarted = stopWatchService.getElapsedTime() > 0;
-        intent.putExtra(Constants.IS_RUNNING_EXTRA_KEY, stopWatchService.isRunning());
+        intent.putExtra(Constants.IS_RUNNING_EXTRA_KEY, stopWatchService.isStopWatchRunning());
 
         unbindService(serviceConnection);
 
         if (wasTimerStarted) {
-            startService(intent);
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent);
+            } else {
+                startService(intent);
+            }
         }
-        super.onStop();
+        super.onPause();
 
     }
 
@@ -101,7 +111,7 @@ public class MainActivity extends FlutterActivity {
                 case Constants.METHOD_CHANNEL_WAS_TIMER_RUNNING:
                     int elapsedTime = stopWatchService.getElapsedTime();
 
-                    if (!stopWatchService.isRunning() && elapsedTime > 0) {
+                    if (!stopWatchService.isStopWatchRunning() && elapsedTime > 0) {
                         resultMethodCall = elapsedTime;
                     }
 
@@ -118,6 +128,9 @@ public class MainActivity extends FlutterActivity {
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             StopWatchService.StopWatchBinder stopWatchBinder = (StopWatchService.StopWatchBinder) iBinder;
             stopWatchService = stopWatchBinder.stopWatchService();
+            stopWatchService.stopForegroundService();
+//            stopWatchService.pauseTimer();
+//            stopWatchService.playTimer();
             isBound = true;
         }
 

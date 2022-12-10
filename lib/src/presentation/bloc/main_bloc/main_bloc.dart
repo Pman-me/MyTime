@@ -154,6 +154,18 @@ class MainBloc extends Bloc<MainEvent, MainState> {
   Future<FutureOr<void>> _onSaveTimeEntry(MainSaveTimeEntryEvent event, Emitter<MainState> emit) async {
     DateFormat dateFormatter = DateFormat(kTimeEntryDateFormat);
     DateTime endDateTime = DateTime.now();
+
+
+    var endDateTimeInMilliseconds;
+    if(endDateTime.timeZoneOffset.isNegative){
+      endDateTimeInMilliseconds = endDateTime.millisecondsSinceEpoch;
+      endDateTimeInMilliseconds += (endDateTime.timeZoneOffset.inMilliseconds).abs();
+    }else{
+      endDateTimeInMilliseconds = endDateTime.millisecondsSinceEpoch;
+      endDateTimeInMilliseconds -= endDateTime.timeZoneOffset.inMilliseconds;
+    }
+    endDateTime = DateTime.fromMillisecondsSinceEpoch(endDateTimeInMilliseconds);
+
     DateTime startDateTime = DateTime.fromMillisecondsSinceEpoch(
         endDateTime.millisecondsSinceEpoch - (event.elapsedInSeconds * 1000));
 
