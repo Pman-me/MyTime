@@ -1,13 +1,14 @@
 package com.mohammadrajabi.my_time;
 
 
+import static com.mohammadrajabi.my_time.Constants.IS_STOP_WATCH_RUNNING_EXTRA_KEY;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
 
 import java.util.*;
@@ -21,15 +22,14 @@ public class StopWatchService extends Service {
     private IBinder stopWatchBinder = new StopWatchBinder();
 
     private int elapsedTime = 0;
+    private int systemElapsedTime = 0;
     private boolean isForegroundService = false;
-    private Handler handler;
     private boolean isStopWatchRunning = false;
-    private Observer<Integer> observer;
+    private Observer<Integer> elapsedTimeObserver;
     private Timer stopwatchTimer;
-
-    public int getElapsedTime() {
-        return elapsedTime;
-    }
+    private long startTimeMillis;
+    private long endTimeMillis;
+    private SharePref sharePref;
 
     public boolean isStopWatchRunning() {
         return isStopWatchRunning;
@@ -37,33 +37,48 @@ public class StopWatchService extends Service {
 
     @Override
     public void onCreate() {
-        super.onCreate();
 
-        observer = integer -> elapsedTime = integer;
-        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().observeForever(observer);
+        elapsedTimeObserver = integer -> elapsedTime = integer;
+
+        sharePref = SharePref.getInstance(getApplicationContext());
+
+        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().observeForever(elapsedTimeObserver);
+
+        startTimeMillis = sharePref.getStartTimeMillis();
+        systemElapsedTime = sharePref.getSystemTimeElapsed();
+        super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         isForegroundService = true;
-        isStopWatchRunning = intent.getBooleanExtra(Constants.IS_RUNNING_EXTRA_KEY, false);
+
+        isStopWatchRunning = intent.getBooleanExtra(IS_STOP_WATCH_RUNNING_EXTRA_KEY, false);
+
         Notification notification;
 
         if (isStopWatchRunning) {
+
             notification = NotificationService.getInstance().buildNotification(this,
                     toHoursMinutesSeconds(elapsedTime),
                     R.drawable.time,
                     Constants.NOTIFICATION_ACTION_PAUSE,
                     R.drawable.ic_stop,
                     Constants.NOTIFICATION_ACTION_PAUSE);
-            playTimer();
+
+            isStopWatchRunning = false;
+            scheduleTimeTask();
+
         } else {
+
             notification = NotificationService.getInstance().buildNotification(this,
                     toHoursMinutesSeconds(elapsedTime),
                     R.drawable.time,
                     Constants.NOTIFICATION_ACTION_PLAY,
                     R.drawable.ic_stop,
                     Constants.NOTIFICATION_ACTION_PLAY);
+
         }
 
         startForeground(Constants.NOTIFICATION_ID, notification);
@@ -71,32 +86,14 @@ public class StopWatchService extends Service {
         if (intent.getAction() != null) {
 
             switch (intent.getAction()) {
-
+                case Constants.APP_WIDGET_ACTION_PAUSE:
                 case Constants.NOTIFICATION_ACTION_PAUSE:
-                    NotificationService.getInstance().updateNotification(this,
-                            toHoursMinutesSeconds(elapsedTime),
-                            R.drawable.time,
-                            Constants.NOTIFICATION_ACTION_PLAY,
-                            R.drawable.ic_play,
-                            Constants.NOTIFICATION_ACTION_PLAY);
                     pauseTimer();
-                    break;
-                case Constants.NOTIFICATION_ACTION_PLAY:
-                    NotificationService.getInstance().updateNotification(this,
-                            toHoursMinutesSeconds(elapsedTime),
-                            R.drawable.time,
-                            Constants.NOTIFICATION_ACTION_PAUSE,
-                            R.drawable.ic_stop,
-                            Constants.NOTIFICATION_ACTION_PAUSE);
-                    playTimer();
                     break;
                 case Constants.APP_WIDGET_ACTION_PLAY:
+                case Constants.NOTIFICATION_ACTION_PLAY:
                     playTimer();
                     break;
-                case Constants.APP_WIDGET_ACTION_PAUSE:
-                    pauseTimer();
-                    break;
-
             }
         }
 
@@ -113,25 +110,17 @@ public class StopWatchService extends Service {
         return stopWatchBinder;
     }
 
-    void stopForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            stopForeground(STOP_FOREGROUND_DETACH);
-        } else {
-            stopForeground(true);
-        }
-        NotificationManager notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
-        notificationManager.cancel(Constants.NOTIFICATION_ID);
-    }
-
     @Override
     public void onDestroy() {
-//        if (handler != null) {
-//            handler.removeCallbacks(stopWatchTimer);
-//        }
+
         if (stopwatchTimer != null) {
             stopwatchTimer.cancel();
         }
-        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().removeObserver(observer);
+
+        isForegroundService = false;
+
+        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().removeObserver(elapsedTimeObserver);
+
         super.onDestroy();
     }
 
@@ -142,7 +131,6 @@ public class StopWatchService extends Service {
             return StopWatchService.this;
         }
     }
-
 
 
 //    private Runnable stopWatchTimer = new Runnable() {
@@ -166,43 +154,107 @@ public class StopWatchService extends Service {
 //        }
 //    };
 
-    public void playTimer() {
-            stopwatchTimer = new Timer();
-            stopwatchTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    elapsedTime++;
+    void stopForegroundService() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(STOP_FOREGROUND_DETACH);
+        } else {
+            stopForeground(true);
+        }
+        NotificationManager notificationManager = (NotificationManager) this.getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.cancel(Constants.NOTIFICATION_ID);
+    }
 
-                    if (isForegroundService) {
-                        NotificationService.getInstance().updateNotification(getBaseContext(),
-                                toHoursMinutesSeconds(elapsedTime),
-                                R.drawable.time,
-                                Constants.NOTIFICATION_ACTION_PAUSE,
-                                R.drawable.ic_stop,
-                                Constants.NOTIFICATION_ACTION_PAUSE);
-                    }
-                    ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
+    private void scheduleTimeTask() {
 
+        stopwatchTimer = new Timer();
+        stopwatchTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+
+                elapsedTime++;
+
+                if (isForegroundService) {
+                    NotificationService.getInstance().updateNotification(getBaseContext(),
+                            toHoursMinutesSeconds(elapsedTime),
+                            R.drawable.time,
+                            Constants.NOTIFICATION_ACTION_PAUSE,
+                            R.drawable.ic_stop,
+                            Constants.NOTIFICATION_ACTION_PAUSE);
                 }
-            }, 0, 1000);
 
-        isStopWatchRunning = true;
+                ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
+
+            }
+        }, 0, 1000);
+    }
+
+    public void playTimer() {
+
+        if (!isStopWatchRunning) {
+
+            isStopWatchRunning = true;
+
+            startTimeMillis = System.currentTimeMillis();
+
+            sharePref.setStartTimeMillis(startTimeMillis);
+
+            sharePref.setSystemTimeElapsed(elapsedTime);
+
+            scheduleTimeTask();
+
+//            AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(StopWatchService.this);
+//
+//            int[] ids = appWidgetManager.getAppWidgetIds(
+//                    new ComponentName(StopWatchService.this, StopWatchAppWidget.class));
+//
+//            Intent updateIntent = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+//            updateIntent.putExtra(IS_STOP_WATCH_RUNNING_EXTRA_KEY, true);
+//            updateIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, R.id.pause);
+//            sendBroadcast(updateIntent);
 //        handler = new Handler(Looper.getMainLooper());
 //        stopWatchTimer.run();
+
+
+        }
     }
 
     public void pauseTimer() {
+
         stopwatchTimer.cancel();
+
+        if (isStopWatchRunning) {
+
+            endTimeMillis = System.currentTimeMillis();
+
+            systemElapsedTime = sharePref.getSystemTimeElapsed();
+
+            systemElapsedTime += ((int) ((endTimeMillis - startTimeMillis) / 1000));
+
+            elapsedTime = systemElapsedTime;
+
+
+        }
+
         isStopWatchRunning = false;
-//        if (handler != null) {
-//            handler.removeCallbacks(stopWatchTimer);
-//            handler = null;
-//        }
+
+        if (isForegroundService) {
+            NotificationService.getInstance().buildNotification(this,
+                    toHoursMinutesSeconds(elapsedTime),
+                    R.drawable.time,
+                    Constants.NOTIFICATION_ACTION_PLAY,
+                    R.drawable.ic_stop,
+                    Constants.NOTIFICATION_ACTION_PLAY);
+
+        }
+
     }
 
     public void resetTimer() {
-        elapsedTime = 0;
         pauseTimer();
+        elapsedTime = 0;
+        systemElapsedTime = 0;
+        sharePref.setSystemTimeElapsed(0);
+        sharePref.setStartTimeMillis(0);
         ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
     }
 

@@ -22,13 +22,13 @@ public class MainActivity extends FlutterActivity {
     private StopWatchService stopWatchService;
     private boolean isBound = false;
     private Intent intent;
+    private int elapsedTime = 0;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().observe(MainActivity.this, observer);
-
+        ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().observe(MainActivity.this, elapsedTimeObserver);
     }
 
     @Override
@@ -45,10 +45,10 @@ public class MainActivity extends FlutterActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        stopPreviousService();
+        stopForegroundService();
     }
 
-    private void stopPreviousService() {
+    private void stopForegroundService() {
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo serviceInfo : activityManager.getRunningServices(Integer.MAX_VALUE)) {
             if (serviceInfo.service.getClassName().equals(StopWatchService.class.getName())) {
@@ -59,18 +59,23 @@ public class MainActivity extends FlutterActivity {
 
     @Override
     protected void onPause() {
-        boolean wasTimerStarted = stopWatchService.getElapsedTime() > 0;
-        intent.putExtra(Constants.IS_RUNNING_EXTRA_KEY, stopWatchService.isStopWatchRunning());
+        if (stopWatchService != null) {
 
-        unbindService(serviceConnection);
+            boolean wasTimerStarted = elapsedTime > 0;
 
-        if (wasTimerStarted) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent);
-            } else {
-                startService(intent);
+            intent.putExtra(Constants.IS_STOP_WATCH_RUNNING_EXTRA_KEY, stopWatchService.isStopWatchRunning());
+
+            unbindService(serviceConnection);
+
+            if (wasTimerStarted) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    startForegroundService(intent);
+                } else {
+                    startService(intent);
+                }
             }
         }
+
         super.onPause();
 
     }
@@ -89,8 +94,10 @@ public class MainActivity extends FlutterActivity {
 
                     if (isBound) {
                         stopWatchService.playTimer();
+
                     }
                     resultMethodCall = true;
+
                     break;
                 case Constants.METHOD_CHANNEL_ACTION_PAUSE:
 
@@ -109,10 +116,9 @@ public class MainActivity extends FlutterActivity {
 
                     break;
                 case Constants.METHOD_CHANNEL_WAS_TIMER_RUNNING:
-                    int elapsedTime = stopWatchService.getElapsedTime();
 
-                    if (!stopWatchService.isStopWatchRunning() && elapsedTime > 0) {
-                        resultMethodCall = elapsedTime;
+                    if (!stopWatchService.isStopWatchRunning() && MainActivity.this.elapsedTime > 0) {
+                        resultMethodCall = MainActivity.this.elapsedTime;
                     }
 
                     break;
@@ -129,8 +135,6 @@ public class MainActivity extends FlutterActivity {
             StopWatchService.StopWatchBinder stopWatchBinder = (StopWatchService.StopWatchBinder) iBinder;
             stopWatchService = stopWatchBinder.stopWatchService();
             stopWatchService.stopForegroundService();
-//            stopWatchService.pauseTimer();
-//            stopWatchService.playTimer();
             isBound = true;
         }
 
@@ -141,11 +145,12 @@ public class MainActivity extends FlutterActivity {
         }
     };
 
-    final Observer<Integer> observer = new Observer<Integer>() {
+    final Observer<Integer> elapsedTimeObserver = new Observer<Integer>() {
         @Override
         public void onChanged(Integer elapsedTime) {
             if (elapsedTime > 0) {
                 timerMethodChannel.invokeMethod(Constants.TICK, elapsedTime);
+                MainActivity.this.elapsedTime = elapsedTime;
             }
         }
     };

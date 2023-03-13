@@ -59,7 +59,7 @@ dev_dependencies:
   freezed: ^2.1.0+1
   json_serializable: ^6.2.0
   chopper_generator: ^4.0.6
-  flutter_launcher_icons:
+  flutter_launcher_icons: ^0.11.0
   objectbox_generator: any
 
 

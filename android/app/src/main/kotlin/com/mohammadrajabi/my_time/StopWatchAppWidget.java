@@ -1,56 +1,81 @@
 package com.mohammadrajabi.my_time;
 
-import android.annotation.SuppressLint;
+import static com.mohammadrajabi.my_time.Constants.IS_STOP_WATCH_RUNNING_EXTRA_KEY;
+
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.view.View;
 import android.widget.RemoteViews;
 
 
 public class StopWatchAppWidget extends AppWidgetProvider {
 
-    private final String ACTION_WIDGET_PLAY = "Play";
-    private final String ACTION_WIDGET_PAUSE = "Pause";
-    private final int INTENT_FLAGS = 0;
     private final int REQUEST_CODE = 0;
+    private boolean isStopWatchRunning = false;
+    private int[] appWidgetIds;
 
-    static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
-                                int appWidgetId) {
-
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.stop_watch_app_widget);
-
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        super.onReceive(context, intent);
+        if (intent.hasExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS)) {
+            isStopWatchRunning = intent.getBooleanExtra(IS_STOP_WATCH_RUNNING_EXTRA_KEY, false);
+            onUpdate(context, AppWidgetManager.getInstance(context), AppWidgetManager.getInstance(context).getAppWidgetIds(
+                    new ComponentName(context, StopWatchAppWidget.class)));
+//            updateAppWidget(context, AppWidgetManager.getInstance(context), intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, 0), );
+        }
     }
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
-
         for (int i = 0; i < appWidgetIds.length; i++) {
-
-            int appWidgetId = appWidgetIds[i];
-
-            Intent playIntent = new Intent(context, StopWatchService.class);
-            playIntent.setAction(Constants.APP_WIDGET_ACTION_PLAY);
-            playIntent.putExtra(Constants.IS_RUNNING_EXTRA_KEY, false);
-
-            Intent pauseIntent = new Intent(context, StopWatchService.class);
-            pauseIntent.setAction(Constants.APP_WIDGET_ACTION_PAUSE);
-
-            PendingIntent playPendingIntent = PendingIntent.getService(context, REQUEST_CODE, playIntent, INTENT_FLAGS);
-
-            PendingIntent pausePendingIntent = PendingIntent.getService(context, REQUEST_CODE, pauseIntent, INTENT_FLAGS);
-
-            RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.stop_watch_app_widget);
-
-            remoteViews.setOnClickPendingIntent(R.id.play_pause_fab, playPendingIntent);
-            remoteViews.setOnClickPendingIntent(R.id.play_pause_fab, pausePendingIntent);
-
-            appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
+            updateAppWidget(context, appWidgetManager, i, isStopWatchRunning);
         }
 
         super.onUpdate(context, appWidgetManager, appWidgetIds);
+    }
+
+    private void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId, boolean isStopWatchInRunning) {
+
+        Intent widgetPlayActionIntent = new Intent(context, StopWatchService.class);
+        widgetPlayActionIntent.setAction(Constants.APP_WIDGET_ACTION_PLAY);
+        widgetPlayActionIntent.putExtra(IS_STOP_WATCH_RUNNING_EXTRA_KEY, false);
+
+        Intent widgetPauseActionIntent = new Intent(context, StopWatchService.class);
+        widgetPauseActionIntent.setAction(Constants.APP_WIDGET_ACTION_PAUSE);
+
+        PendingIntent widgetPlayActionPendingIntent;
+        PendingIntent widgetPauseActionPendingIntent;
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            widgetPlayActionPendingIntent = PendingIntent.getService(context, REQUEST_CODE, widgetPlayActionIntent, PendingIntent.FLAG_IMMUTABLE);
+            widgetPauseActionPendingIntent = PendingIntent.getService(context, REQUEST_CODE, widgetPauseActionIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        } else {
+            widgetPlayActionPendingIntent = PendingIntent.getService(context, REQUEST_CODE, widgetPlayActionIntent, 0);
+
+            widgetPauseActionPendingIntent = PendingIntent.getService(context, REQUEST_CODE, widgetPauseActionIntent, 0);
+        }
+
+
+        RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.stop_watch_app_widget);
+
+        if (isStopWatchInRunning) {
+            remoteViews.setViewVisibility(R.id.play, View.GONE);
+            remoteViews.setViewVisibility(R.id.pause, View.VISIBLE);
+        } else {
+            remoteViews.setViewVisibility(R.id.play, View.VISIBLE);
+            remoteViews.setViewVisibility(R.id.pause, View.GONE);
+        }
+
+        remoteViews.setOnClickPendingIntent(R.id.play, widgetPlayActionPendingIntent);
+        remoteViews.setOnClickPendingIntent(R.id.save, widgetPauseActionPendingIntent);
+
+        appWidgetManager.updateAppWidget(appWidgetId, remoteViews);
+
     }
 
     @Override
@@ -62,4 +87,6 @@ public class StopWatchAppWidget extends AppWidgetProvider {
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
     }
+
+
 }

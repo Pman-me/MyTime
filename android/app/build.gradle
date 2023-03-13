@@ -63,6 +63,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'com.mohammadrajabi.my_time'
 }
 
 flutter {

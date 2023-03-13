@@ -15,7 +15,11 @@ public class Constants {
 
     public static final String TIMER_METHOD_CHANNEL = "timerMethodChannel";
 
-    public static final String IS_RUNNING_EXTRA_KEY = "isRunning";
+    public static final String IS_STOP_WATCH_RUNNING_EXTRA_KEY = "isStopWatchRunning";
+    public static final String START_TIME_MILLIS_EXTRA_KEY = "startTimeMillis";
+
     public static final String APP_WIDGET_ACTION_PLAY = "appWidgetPlay";
     public static final String APP_WIDGET_ACTION_PAUSE = "appWidgetPause";
+
+
 }
