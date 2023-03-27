@@ -22,8 +22,7 @@ public class MainActivity extends FlutterActivity {
     private StopWatchService stopWatchService;
     private boolean isBound = false;
     private Intent intent;
-    private int elapsedTime = 0;
-
+    private int elapsedTime;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -117,8 +116,8 @@ public class MainActivity extends FlutterActivity {
                     break;
                 case Constants.METHOD_CHANNEL_WAS_TIMER_RUNNING:
 
-                    if (!stopWatchService.isStopWatchRunning() && MainActivity.this.elapsedTime > 0) {
-                        resultMethodCall = MainActivity.this.elapsedTime;
+                    if (!stopWatchService.isStopWatchRunning() && elapsedTime > 0) {
+                        resultMethodCall = elapsedTime;
                     }
 
                     break;
@@ -129,7 +128,7 @@ public class MainActivity extends FlutterActivity {
 
     }
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             StopWatchService.StopWatchBinder stopWatchBinder = (StopWatchService.StopWatchBinder) iBinder;
@@ -148,9 +147,9 @@ public class MainActivity extends FlutterActivity {
     final Observer<Integer> elapsedTimeObserver = new Observer<Integer>() {
         @Override
         public void onChanged(Integer elapsedTime) {
+            MainActivity.this.elapsedTime = elapsedTime;
             if (elapsedTime > 0) {
                 timerMethodChannel.invokeMethod(Constants.TICK, elapsedTime);
-                MainActivity.this.elapsedTime = elapsedTime;
             }
         }
     };

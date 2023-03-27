@@ -37,16 +37,14 @@ public class StopWatchService extends Service {
 
     @Override
     public void onCreate() {
-
+        super.onCreate();
         elapsedTimeObserver = integer -> elapsedTime = integer;
-
-        sharePref = SharePref.getInstance(getApplicationContext());
 
         ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().observeForever(elapsedTimeObserver);
 
+        sharePref = SharePref.getInstance(getApplicationContext());
+
         startTimeMillis = sharePref.getStartTimeMillis();
-        systemElapsedTime = sharePref.getSystemTimeElapsed();
-        super.onCreate();
     }
 
     @Override
@@ -170,8 +168,9 @@ public class StopWatchService extends Service {
         stopwatchTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-
                 elapsedTime++;
+
+                ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
 
                 if (isForegroundService) {
                     NotificationService.getInstance().updateNotification(getBaseContext(),
@@ -182,7 +181,6 @@ public class StopWatchService extends Service {
                             Constants.NOTIFICATION_ACTION_PAUSE);
                 }
 
-                ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
 
             }
         }, 0, 1000);
@@ -213,8 +211,6 @@ public class StopWatchService extends Service {
 //            sendBroadcast(updateIntent);
 //        handler = new Handler(Looper.getMainLooper());
 //        stopWatchTimer.run();
-
-
         }
     }
 
@@ -223,7 +219,6 @@ public class StopWatchService extends Service {
         stopwatchTimer.cancel();
 
         if (isStopWatchRunning) {
-
             endTimeMillis = System.currentTimeMillis();
 
             systemElapsedTime = sharePref.getSystemTimeElapsed();
@@ -231,8 +226,6 @@ public class StopWatchService extends Service {
             systemElapsedTime += ((int) ((endTimeMillis - startTimeMillis) / 1000));
 
             elapsedTime = systemElapsedTime;
-
-
         }
 
         isStopWatchRunning = false;
@@ -245,12 +238,14 @@ public class StopWatchService extends Service {
                     R.drawable.ic_stop,
                     Constants.NOTIFICATION_ACTION_PLAY);
 
+            ElapsedTimeLiveData.getInstance().getElapsedTimeLiveData().postValue(elapsedTime);
+
         }
 
     }
 
     public void resetTimer() {
-        pauseTimer();
+        stopwatchTimer.cancel();
         elapsedTime = 0;
         systemElapsedTime = 0;
         sharePref.setSystemTimeElapsed(0);
