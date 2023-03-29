@@ -61,9 +61,7 @@ public class MainActivity extends FlutterActivity {
         if (stopWatchService != null) {
 
             boolean wasTimerStarted = elapsedTime > 0;
-
             intent.putExtra(Constants.IS_STOP_WATCH_RUNNING_EXTRA_KEY, stopWatchService.isStopWatchRunning());
-
             unbindService(serviceConnection);
 
             if (wasTimerStarted) {
@@ -93,7 +91,6 @@ public class MainActivity extends FlutterActivity {
 
                     if (isBound) {
                         stopWatchService.playTimer();
-
                     }
                     resultMethodCall = true;
 
@@ -115,7 +112,6 @@ public class MainActivity extends FlutterActivity {
 
                     break;
                 case Constants.METHOD_CHANNEL_WAS_TIMER_RUNNING:
-
                     if (!stopWatchService.isStopWatchRunning() && elapsedTime > 0) {
                         resultMethodCall = elapsedTime;
                     }
@@ -153,5 +149,6 @@ public class MainActivity extends FlutterActivity {
             }
         }
     };
+
 
 }

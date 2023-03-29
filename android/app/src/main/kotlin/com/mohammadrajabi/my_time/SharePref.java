@@ -9,6 +9,7 @@ public class SharePref {
     private static final String PREFS_NAME = "myTime_pref";
     private static final String KEY_SYSTEM_ELAPSED_TIME = "systemElapsedTime";
     private static final String KEY_START_TIME_MILLIS = "startTimeMillis";
+    private static final String KEY_IS_STOPWATCH_RUNNING = "isStopWatchRunning";
     private static SharedPreferences sharedPreferences;
     private static SharePref mSharePref;
 
@@ -41,4 +42,5 @@ public class SharePref {
         editor.putLong(KEY_START_TIME_MILLIS, startTimeMillis);
         editor.apply();
     }
+
 }

@@ -15,6 +15,8 @@ public class Constants {
 
     public static final String TIMER_METHOD_CHANNEL = "timerMethodChannel";
 
+    public static final String MOVE_TO_FOREGROUND = "MOVE_TO_FOREGROUND";
+    public static final String MOVE_TO_BACKGROUND = "MOVE_TO_BACKGROUND";
     public static final String IS_STOP_WATCH_RUNNING_EXTRA_KEY = "isStopWatchRunning";
     public static final String START_TIME_MILLIS_EXTRA_KEY = "startTimeMillis";
 
